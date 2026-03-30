@@ -5,7 +5,7 @@ const path = require('path');
 
 const app = express();
 
-app.use(cors({ origin: "*" }));
+app.use(require("cors")({ origin: "*", methods: ["GET","POST","PUT","DELETE"], credentials: true }));
 app.use(express.json());
 
 // ✅ FIX: serve uploaded images
