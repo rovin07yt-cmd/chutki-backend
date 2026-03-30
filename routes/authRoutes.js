@@ -112,7 +112,7 @@ router.post('/register', async (req, res) => {
       return res.json({ success: false, message: "Invalid role" });
     }
 
-    res.json({ success: true, id: result.rows[0].id });
+    res.json({ success: true, user: { id: result.rows[0].id, name, email, phone, role } });
 
   } catch (err) {
     console.log("REGISTER ERROR:", err);
