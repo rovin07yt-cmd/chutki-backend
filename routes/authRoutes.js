@@ -6,7 +6,6 @@ const { login } = require('../controllers/authController');
 // 🔐 LOGIN
 router.post('/login', login);
 
-module.exports = router;
 
 // ================= OTP SYSTEM =================
 
@@ -42,3 +41,4 @@ router.post('/verify-otp', (req, res) => {
   res.json({ success: false, message: "Invalid OTP" });
 });
 
+module.exports = router;
