@@ -1,3 +1,4 @@
+console.log("🚀 USING restaurantRoutes_v2.js");
 const db = require("../config/db");
 const express = require('express');
 const router = express.Router();

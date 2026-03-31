@@ -1,0 +1,63 @@
+                                                                    Table "public.restaurants"
+    Column    |            Type             | Collation | Nullable |                 Default                 | Storage  | Compre
+ssion | Stats target | Description 
+--------------+-----------------------------+-----------+----------+-----------------------------------------+----------+-------
+------+--------------+-------------
+ id           | integer                     |           | not null | nextval('restaurants_id_seq'::regclass) | plain    |       
+      |              | 
+ name         | character varying(255)      |           | not null |                                         | extended |       
+      |              | 
+ address      | text                        |           | not null |                                         | extended |       
+      |              | 
+ phone_number | character varying(20)       |           |          |                                         | extended |       
+      |              | 
+ status       | character varying(20)       |           |          | 'open'::character varying               | extended |       
+      |              | 
+ owner_id     | integer                     |           |          |                                         | plain    |       
+      |              | 
+ created_at   | timestamp without time zone |           |          | now()                                   | plain    |       
+      |              | 
+ updated_at   | timestamp without time zone |           |          | now()                                   | plain    |       
+      |              | 
+ opening_time | time without time zone      |           |          |                                         | plain    |       
+      |              | 
+ closing_time | time without time zone      |           |          |                                         | plain    |       
+      |              | 
+ is_open      | boolean                     |           |          | true                                    | plain    |       
+      |              | 
+ email        | text                        |           |          |                                         | extended |       
+      |              | 
+ password     | text                        |           |          |                                         | extended |       
+      |              | 
+ owner_name   | text                        |           |          |                                         | extended |       
+      |              | 
+ upi_id       | text                        |           |          |                                         | extended |       
+      |              | 
+ account_no   | text                        |           |          |                                         | extended |       
+      |              | 
+ ifsc         | text                        |           |          |                                         | extended |       
+      |              | 
+ location_geo | geography(Point,4326)       |           |          |                                         | main     |       
+      |              | 
+Indexes:
+    "restaurants_pkey" PRIMARY KEY, btree (id)
+Check constraints:
+    "check_valid_time" CHECK (opening_time IS NULL OR closing_time IS NULL OR opening_time < closing_time)
+    "restaurants_status_check" CHECK (status::text = ANY (ARRAY['open'::character varying, 'closed'::character varying]::text[])
+)
+Foreign-key constraints:
+    "restaurants_owner_id_fkey" FOREIGN KEY (owner_id) REFERENCES admins(id)
+Referenced by:
+    TABLE "food_items" CONSTRAINT "food_items_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELE
+TE CASCADE
+    TABLE "issues" CONSTRAINT "issues_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    TABLE "notifications" CONSTRAINT "notifications_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    TABLE "order_restaurants" CONSTRAINT "order_restaurants_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restauran
+ts(id)
+    TABLE "pickup_sequence" CONSTRAINT "pickup_sequence_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(i
+d) ON DELETE CASCADE
+Triggers:
+    update_restaurants_updated_at BEFORE UPDATE ON restaurants FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+Access method: heap
+
+

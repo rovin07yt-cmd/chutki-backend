@@ -1,0 +1,565 @@
+====================  ====================
+                                                  List of relations
+ Schema |           Name           |   Type   |    Owner     | Persistence | Access method |    Size    | Description 
+--------+--------------------------+----------+--------------+-------------+---------------+------------+-------------
+ public | admins                   | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | admins_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | earnings                 | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | earnings_id_seq          | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | email_otps               | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | email_otps_id_seq        | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | food_item_images         | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | food_item_images_id_seq  | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | food_items               | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | food_items_id_seq        | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | geography_columns        | view     | cloud_admin  | permanent   |               | 0 bytes    | 
+ public | geometry_columns         | view     | cloud_admin  | permanent   |               | 0 bytes    | 
+ public | issues                   | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | issues_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | notifications            | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | notifications_id_seq     | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | order_items              | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | order_items_id_seq       | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | order_restaurants        | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | order_restaurants_id_seq | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | orders                   | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | orders_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | pickup_sequence          | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | pickup_sequence_id_seq   | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | restaurants              | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | restaurants_id_seq       | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | rider_assignments        | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | rider_assignments_id_seq | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | riders                   | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | riders_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | serviceable_areas        | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | serviceable_areas_id_seq | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | spatial_ref_sys          | table    | cloud_admin  | permanent   | heap          | 6936 kB    | 
+ public | system_settings          | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | system_settings_id_seq   | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | users                    | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | users_id_seq             | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | website_status           | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | website_status_id_seq    | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+(39 rows)
+
+==================== admins ====================
+                                                                   Table "public.admins"
+   Column   |            Type             | Collation | Nullable |              Default               | Storage  | Compression | Stats target | Description 
+------------+-----------------------------+-----------+----------+------------------------------------+----------+-------------+--------------+-------------
+ id         | integer                     |           | not null | nextval('admins_id_seq'::regclass) | plain    |             |              | 
+ name       | character varying(255)      |           | not null |                                    | extended |             |              | 
+ email      | character varying(255)      |           | not null |                                    | extended |             |              | 
+ password   | character varying(255)      |           | not null |                                    | extended |             |              | 
+ role       | character varying(20)       |           | not null |                                    | extended |             |              | 
+ created_at | timestamp without time zone |           |          | now()                              | plain    |             |              | 
+ updated_at | timestamp without time zone |           |          | now()                              | plain    |             |              | 
+Indexes:
+    "admins_pkey" PRIMARY KEY, btree (id)
+    "admins_email_key" UNIQUE CONSTRAINT, btree (email)
+Check constraints:
+    "admins_role_check" CHECK (role::text = ANY (ARRAY['admin'::character varying, 'sub-admin'::character varying]::text[]))
+Referenced by:
+    TABLE "restaurants" CONSTRAINT "restaurants_owner_id_fkey" FOREIGN KEY (owner_id) REFERENCES admins(id)
+Triggers:
+    update_admins_updated_at BEFORE UPDATE ON admins FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+Access method: heap
+
+==================== earnings ====================
+                                                                    Table "public.earnings"
+    Column    |            Type             | Collation | Nullable |               Default                | Storage  | Compression | Stats target | Description 
+--------------+-----------------------------+-----------+----------+--------------------------------------+----------+-------------+--------------+-------------
+ id           | integer                     |           | not null | nextval('earnings_id_seq'::regclass) | plain    |             |              | 
+ order_id     | integer                     |           |          |                                      | plain    |             |              | 
+ entity_type  | character varying(20)       |           |          |                                      | extended |             |              | 
+ entity_id    | integer                     |           | not null |                                      | plain    |             |              | 
+ gross_amount | numeric(10,2)               |           |          |                                      | main     |             |              | 
+ deductions   | jsonb                       |           |          |                                      | extended |             |              | 
+ net_amount   | numeric(10,2)               |           |          |                                      | main     |             |              | 
+ currency     | character varying(3)        |           |          | 'USD'::character varying             | extended |             |              | 
+ created_at   | timestamp without time zone |           |          | now()                                | plain    |             |              | 
+Indexes:
+    "earnings_pkey" PRIMARY KEY, btree (id)
+    "idx_earnings_entity" btree (entity_type, entity_id)
+    "idx_earnings_order_id" btree (order_id)
+Check constraints:
+    "earnings_entity_type_check" CHECK (entity_type::text = ANY (ARRAY['admin'::character varying, 'rider'::character varying, 'restaurant'::character varying]::text[]))
+Foreign-key constraints:
+    "earnings_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id)
+Access method: heap
+
+==================== email_otps ====================
+                                                                     Table "public.email_otps"
+    Column     |            Type             | Collation | Nullable |                Default                 | Storage  | Compression | Stats target | Description 
+---------------+-----------------------------+-----------+----------+----------------------------------------+----------+-------------+--------------+-------------
+ id            | integer                     |           | not null | nextval('email_otps_id_seq'::regclass) | plain    |             |              | 
+ email         | character varying(255)      |           | not null |                                        | extended |             |              | 
+ otp           | character varying(10)       |           | not null |                                        | extended |             |              | 
+ expires_at    | timestamp without time zone |           |          |                                        | plain    |             |              | 
+ created_at    | timestamp without time zone |           |          | now()                                  | plain    |             |              | 
+ is_verified   | boolean                     |           |          | false                                  | plain    |             |              | 
+ attempt_count | integer                     |           |          | 0                                      | plain    |             |              | 
+Indexes:
+    "email_otps_pkey" PRIMARY KEY, btree (id)
+    "idx_email_otps_email" btree (email)
+Access method: heap
+
+==================== food_item_images ====================
+                                                                    Table "public.food_item_images"
+    Column    |            Type             | Collation | Nullable |                   Default                    | Storage  | Compression | Stats target | Description 
+--------------+-----------------------------+-----------+----------+----------------------------------------------+----------+-------------+--------------+-------------
+ id           | integer                     |           | not null | nextval('food_item_images_id_seq'::regclass) | plain    |             |              | 
+ food_item_id | integer                     |           | not null |                                              | plain    |             |              | 
+ image_url    | text                        |           | not null |                                              | extended |             |              | 
+ created_at   | timestamp without time zone |           |          | CURRENT_TIMESTAMP                            | plain    |             |              | 
+Indexes:
+    "food_item_images_pkey" PRIMARY KEY, btree (id)
+    "idx_food_item_images_item" btree (food_item_id)
+Foreign-key constraints:
+    "food_item_images_food_item_id_fkey" FOREIGN KEY (food_item_id) REFERENCES food_items(id) ON DELETE CASCADE
+Triggers:
+    trigger_check_images_limit BEFORE INSERT ON food_item_images FOR EACH ROW EXECUTE FUNCTION check_food_item_images_limit()
+Access method: heap
+
+==================== food_items ====================
+                                                                          Table "public.food_items"
+          Column          |            Type             | Collation | Nullable |                Default                 | Storage  | Compression | Stats target | Description 
+--------------------------+-----------------------------+-----------+----------+----------------------------------------+----------+-------------+--------------+-------------
+ id                       | integer                     |           | not null | nextval('food_items_id_seq'::regclass) | plain    |             |              | 
+ restaurant_id            | integer                     |           |          |                                        | plain    |             |              | 
+ name                     | character varying(255)      |           | not null |                                        | extended |             |              | 
+ price                    | numeric(10,2)               |           | not null |                                        | main     |             |              | 
+ available                | boolean                     |           |          | true                                   | plain    |             |              | 
+ preparation_time_minutes | integer                     |           |          | 10                                     | plain    |             |              | 
+ portion                  | character varying(10)       |           |          | 'full'::character varying              | extended |             |              | 
+ created_at               | timestamp without time zone |           |          | now()                                  | plain    |             |              | 
+ updated_at               | timestamp without time zone |           |          | now()                                  | plain    |             |              | 
+ is_available             | boolean                     |           |          | true                                   | plain    |             |              | 
+Indexes:
+    "food_items_pkey" PRIMARY KEY, btree (id)
+    "idx_food_items_restaurant" btree (restaurant_id)
+Check constraints:
+    "food_items_portion_check" CHECK (portion::text = ANY (ARRAY['full'::character varying, 'half'::character varying]::text[]))
+Foreign-key constraints:
+    "food_items_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+Referenced by:
+    TABLE "food_item_images" CONSTRAINT "food_item_images_food_item_id_fkey" FOREIGN KEY (food_item_id) REFERENCES food_items(id) ON DELETE CASCADE
+    TABLE "order_items" CONSTRAINT "order_items_food_item_id_fkey" FOREIGN KEY (food_item_id) REFERENCES food_items(id)
+Triggers:
+    update_food_items_updated_at BEFORE UPDATE ON food_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+Access method: heap
+
+==================== issues ====================
+                                                                     Table "public.issues"
+    Column     |            Type             | Collation | Nullable |              Default               | Storage  | Compression | Stats target | Description 
+---------------+-----------------------------+-----------+----------+------------------------------------+----------+-------------+--------------+-------------
+ id            | integer                     |           | not null | nextval('issues_id_seq'::regclass) | plain    |             |              | 
+ user_id       | integer                     |           |          |                                    | plain    |             |              | 
+ rider_id      | integer                     |           |          |                                    | plain    |             |              | 
+ restaurant_id | integer                     |           |          |                                    | plain    |             |              | 
+ order_id      | integer                     |           |          |                                    | plain    |             |              | 
+ message       | text                        |           | not null |                                    | extended |             |              | 
+ status        | character varying(20)       |           |          | 'pending'::character varying       | extended |             |              | 
+ created_at    | timestamp without time zone |           |          | now()                              | plain    |             |              | 
+Indexes:
+    "issues_pkey" PRIMARY KEY, btree (id)
+    "idx_issues_order" btree (order_id)
+Check constraints:
+    "issues_status_check" CHECK (status::text = ANY (ARRAY['pending'::character varying, 'resolved'::character varying]::text[]))
+Foreign-key constraints:
+    "issues_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id)
+    "issues_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    "issues_rider_id_fkey" FOREIGN KEY (rider_id) REFERENCES riders(id)
+    "issues_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+Access method: heap
+
+==================== notifications ====================
+                                                                     Table "public.notifications"
+    Column     |            Type             | Collation | Nullable |                  Default                  | Storage  | Compression | Stats target | Description 
+---------------+-----------------------------+-----------+----------+-------------------------------------------+----------+-------------+--------------+-------------
+ id            | integer                     |           | not null | nextval('notifications_id_seq'::regclass) | plain    |             |              | 
+ user_id       | integer                     |           |          |                                           | plain    |             |              | 
+ rider_id      | integer                     |           |          |                                           | plain    |             |              | 
+ restaurant_id | integer                     |           |          |                                           | plain    |             |              | 
+ message       | text                        |           |          |                                           | extended |             |              | 
+ status        | character varying(20)       |           |          | 'unread'::character varying               | extended |             |              | 
+ created_at    | timestamp without time zone |           |          | now()                                     | plain    |             |              | 
+Indexes:
+    "notifications_pkey" PRIMARY KEY, btree (id)
+    "idx_notifications_restaurant" btree (restaurant_id)
+    "idx_notifications_rider" btree (rider_id)
+    "idx_notifications_user" btree (user_id)
+Check constraints:
+    "notification_target_check" CHECK (((user_id IS NOT NULL)::integer + (rider_id IS NOT NULL)::integer + (restaurant_id IS NOT NULL)::integer) = 1)
+    "notifications_status_check" CHECK (status::text = ANY (ARRAY['unread'::character varying, 'read'::character varying]::text[]))
+Foreign-key constraints:
+    "notifications_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    "notifications_rider_id_fkey" FOREIGN KEY (rider_id) REFERENCES riders(id)
+    "notifications_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+Access method: heap
+
+==================== order_items ====================
+                                                                    Table "public.order_items"
+    Column    |            Type             | Collation | Nullable |                 Default                 | Storage  | Compression | Stats target | Description 
+--------------+-----------------------------+-----------+----------+-----------------------------------------+----------+-------------+--------------+-------------
+ id           | integer                     |           | not null | nextval('order_items_id_seq'::regclass) | plain    |             |              | 
+ order_id     | integer                     |           |          |                                         | plain    |             |              | 
+ food_item_id | integer                     |           |          |                                         | plain    |             |              | 
+ quantity     | integer                     |           |          | 1                                       | plain    |             |              | 
+ portion      | character varying(10)       |           |          | 'full'::character varying               | extended |             |              | 
+ price        | numeric(10,2)               |           | not null |                                         | main     |             |              | 
+ created_at   | timestamp without time zone |           |          | now()                                   | plain    |             |              | 
+Indexes:
+    "order_items_pkey" PRIMARY KEY, btree (id)
+    "idx_order_items_order_id" btree (order_id)
+Check constraints:
+    "order_items_portion_check" CHECK (portion::text = ANY (ARRAY['full'::character varying, 'half'::character varying]::text[]))
+Foreign-key constraints:
+    "order_items_food_item_id_fkey" FOREIGN KEY (food_item_id) REFERENCES food_items(id)
+    "order_items_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+Access method: heap
+
+==================== order_restaurants ====================
+                                                                     Table "public.order_restaurants"
+    Column     |            Type             | Collation | Nullable |                    Default                    | Storage  | Compression | Stats target | Description 
+---------------+-----------------------------+-----------+----------+-----------------------------------------------+----------+-------------+--------------+-------------
+ id            | integer                     |           | not null | nextval('order_restaurants_id_seq'::regclass) | plain    |             |              | 
+ order_id      | integer                     |           |          |                                               | plain    |             |              | 
+ restaurant_id | integer                     |           |          |                                               | plain    |             |              | 
+ status        | character varying(20)       |           |          | 'pending'::character varying                  | extended |             |              | 
+ created_at    | timestamp without time zone |           |          | now()                                         | plain    |             |              | 
+Indexes:
+    "order_restaurants_pkey" PRIMARY KEY, btree (id)
+    "unique_order_restaurant" UNIQUE CONSTRAINT, btree (order_id, restaurant_id)
+Check constraints:
+    "order_restaurants_status_check" CHECK (status::text = ANY (ARRAY['pending'::character varying, 'accepted'::character varying, 'preparing'::character varying, 'ready'::character varying, 'cancelled'::character varying]::text[]))
+Foreign-key constraints:
+    "order_restaurants_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+    "order_restaurants_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+Access method: heap
+
+==================== orders ====================
+                                                                       Table "public.orders"
+      Column       |            Type             | Collation | Nullable |              Default               | Storage  | Compression | Stats target | Description 
+-------------------+-----------------------------+-----------+----------+------------------------------------+----------+-------------+--------------+-------------
+ id                | integer                     |           | not null | nextval('orders_id_seq'::regclass) | plain    |             |              | 
+ user_id           | integer                     |           |          |                                    | plain    |             |              | 
+ delivery_address  | text                        |           | not null |                                    | extended |             |              | 
+ delivery_phone    | character varying(20)       |           | not null |                                    | extended |             |              | 
+ total_amount      | numeric(10,2)               |           | not null |                                    | main     |             |              | 
+ status            | character varying(20)       |           |          | 'new'::character varying           | extended |             |              | 
+ payment_type      | character varying(10)       |           |          | 'cod'::character varying           | extended |             |              | 
+ created_at        | timestamp without time zone |           |          | now()                              | plain    |             |              | 
+ updated_at        | timestamp without time zone |           |          | now()                              | plain    |             |              | 
+ assigned_rider_id | integer                     |           |          |                                    | plain    |             |              | 
+ delivery_location | geography(Point,4326)       |           |          |                                    | main     |             |              | 
+ queued_at         | timestamp without time zone |           |          |                                    | plain    |             |              | 
+ cancelled_by      | character varying(20)       |           |          |                                    | extended |             |              | 
+ cancel_reason     | text                        |           |          |                                    | extended |             |              | 
+ cancelled_at      | timestamp without time zone |           |          |                                    | plain    |             |              | 
+Indexes:
+    "orders_pkey" PRIMARY KEY, btree (id)
+    "idx_orders_assigned_rider" btree (assigned_rider_id)
+    "idx_orders_created_at" btree (created_at)
+    "idx_orders_delivery_location" gist (delivery_location)
+    "idx_orders_status" btree (status)
+    "idx_orders_user_id" btree (user_id)
+Check constraints:
+    "cancelled_by_check" CHECK (cancelled_by::text = ANY (ARRAY['user'::character varying, 'admin'::character varying, 'system'::character varying, 'restaurant'::character varying]::text[]))
+    "orders_payment_type_check" CHECK (payment_type::text = 'cod'::text)
+    "orders_status_check" CHECK (status::text = ANY (ARRAY['new'::character varying, 'accepted'::character varying, 'preparing'::character varying, 'ready'::character varying, 'waiting'::character varying, 'assigned'::character varying, 'delivered'::character varying, 'cancelled'::character varying, 'temporary_issue'::character varying]::text[]))
+Foreign-key constraints:
+    "orders_assigned_rider_id_fkey" FOREIGN KEY (assigned_rider_id) REFERENCES riders(id)
+    "orders_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+Referenced by:
+    TABLE "earnings" CONSTRAINT "earnings_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id)
+    TABLE "issues" CONSTRAINT "issues_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id)
+    TABLE "order_items" CONSTRAINT "order_items_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+    TABLE "order_restaurants" CONSTRAINT "order_restaurants_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+    TABLE "pickup_sequence" CONSTRAINT "pickup_sequence_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+    TABLE "rider_assignments" CONSTRAINT "rider_assignments_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+Triggers:
+    update_orders_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+Access method: heap
+
+==================== pickup_sequence ====================
+                                                                    Table "public.pickup_sequence"
+    Column     |            Type             | Collation | Nullable |                   Default                   | Storage | Compression | Stats target | Description 
+---------------+-----------------------------+-----------+----------+---------------------------------------------+---------+-------------+--------------+-------------
+ id            | integer                     |           | not null | nextval('pickup_sequence_id_seq'::regclass) | plain   |             |              | 
+ order_id      | integer                     |           | not null |                                             | plain   |             |              | 
+ restaurant_id | integer                     |           | not null |                                             | plain   |             |              | 
+ sequence      | integer                     |           | not null |                                             | plain   |             |              | 
+ created_at    | timestamp without time zone |           |          | CURRENT_TIMESTAMP                           | plain   |             |              | 
+Indexes:
+    "pickup_sequence_pkey" PRIMARY KEY, btree (id)
+    "idx_pickup_sequence_order" btree (order_id)
+    "unique_order_restaurant_sequence" UNIQUE CONSTRAINT, btree (order_id, restaurant_id)
+Foreign-key constraints:
+    "pickup_sequence_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+    "pickup_sequence_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+Access method: heap
+
+==================== restaurants ====================
+                                                                    Table "public.restaurants"
+    Column    |            Type             | Collation | Nullable |                 Default                 | Storage  | Compression | Stats target | Description 
+--------------+-----------------------------+-----------+----------+-----------------------------------------+----------+-------------+--------------+-------------
+ id           | integer                     |           | not null | nextval('restaurants_id_seq'::regclass) | plain    |             |              | 
+ name         | character varying(255)      |           | not null |                                         | extended |             |              | 
+ address      | text                        |           | not null |                                         | extended |             |              | 
+ phone_number | character varying(20)       |           |          |                                         | extended |             |              | 
+ status       | character varying(20)       |           |          | 'open'::character varying               | extended |             |              | 
+ owner_id     | integer                     |           |          |                                         | plain    |             |              | 
+ created_at   | timestamp without time zone |           |          | now()                                   | plain    |             |              | 
+ updated_at   | timestamp without time zone |           |          | now()                                   | plain    |             |              | 
+ opening_time | time without time zone      |           |          |                                         | plain    |             |              | 
+ closing_time | time without time zone      |           |          |                                         | plain    |             |              | 
+ is_open      | boolean                     |           |          | true                                    | plain    |             |              | 
+ email        | text                        |           |          |                                         | extended |             |              | 
+ password     | text                        |           |          |                                         | extended |             |              | 
+ owner_name   | text                        |           |          |                                         | extended |             |              | 
+ upi_id       | text                        |           |          |                                         | extended |             |              | 
+ account_no   | text                        |           |          |                                         | extended |             |              | 
+ ifsc         | text                        |           |          |                                         | extended |             |              | 
+ location_geo | geography(Point,4326)       |           |          |                                         | main     |             |              | 
+Indexes:
+    "restaurants_pkey" PRIMARY KEY, btree (id)
+Check constraints:
+    "check_valid_time" CHECK (opening_time IS NULL OR closing_time IS NULL OR opening_time < closing_time)
+    "restaurants_status_check" CHECK (status::text = ANY (ARRAY['open'::character varying, 'closed'::character varying]::text[]))
+Foreign-key constraints:
+    "restaurants_owner_id_fkey" FOREIGN KEY (owner_id) REFERENCES admins(id)
+Referenced by:
+    TABLE "food_items" CONSTRAINT "food_items_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+    TABLE "issues" CONSTRAINT "issues_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    TABLE "notifications" CONSTRAINT "notifications_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    TABLE "order_restaurants" CONSTRAINT "order_restaurants_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+    TABLE "pickup_sequence" CONSTRAINT "pickup_sequence_restaurant_id_fkey" FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+Triggers:
+    update_restaurants_updated_at BEFORE UPDATE ON restaurants FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+Access method: heap
+
+==================== rider_assignments ====================
+                                                                    Table "public.rider_assignments"
+    Column    |            Type             | Collation | Nullable |                    Default                    | Storage  | Compression | Stats target | Description 
+--------------+-----------------------------+-----------+----------+-----------------------------------------------+----------+-------------+--------------+-------------
+ id           | integer                     |           | not null | nextval('rider_assignments_id_seq'::regclass) | plain    |             |              | 
+ order_id     | integer                     |           |          |                                               | plain    |             |              | 
+ rider_id     | integer                     |           |          |                                               | plain    |             |              | 
+ status       | character varying(20)       |           |          | 'pending'::character varying                  | extended |             |              | 
+ assigned_at  | timestamp without time zone |           |          | now()                                         | plain    |             |              | 
+ picked_at    | timestamp without time zone |           |          |                                               | plain    |             |              | 
+ delivered_at | timestamp without time zone |           |          |                                               | plain    |             |              | 
+ created_at   | timestamp without time zone |           |          | now()                                         | plain    |             |              | 
+Indexes:
+    "rider_assignments_pkey" PRIMARY KEY, btree (id)
+    "idx_rider_assignments_order_id" btree (order_id)
+    "idx_rider_assignments_rider_id" btree (rider_id)
+    "unique_order_assignment" UNIQUE CONSTRAINT, btree (order_id)
+Check constraints:
+    "rider_assignments_status_check" CHECK (status::text = ANY (ARRAY['pending'::character varying, 'accepted'::character varying, 'picked'::character varying, 'delivered'::character varying, 'cancelled'::character varying]::text[]))
+Foreign-key constraints:
+    "rider_assignments_order_id_fkey" FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+    "rider_assignments_rider_id_fkey" FOREIGN KEY (rider_id) REFERENCES riders(id)
+Access method: heap
+
+==================== riders ====================
+                                                                        Table "public.riders"
+        Column        |            Type             | Collation | Nullable |              Default               | Storage  | Compression | Stats target | Description 
+----------------------+-----------------------------+-----------+----------+------------------------------------+----------+-------------+--------------+-------------
+ id                   | integer                     |           | not null | nextval('riders_id_seq'::regclass) | plain    |             |              | 
+ name                 | character varying(255)      |           | not null |                                    | extended |             |              | 
+ phone_number         | character varying(20)       |           | not null |                                    | extended |             |              | 
+ status               | rider_status                |           |          | 'offline'::rider_status            | plain    |             |              | 
+ vehicle_type         | character varying(50)       |           |          |                                    | extended |             |              | 
+ created_at           | timestamp without time zone |           |          | now()                              | plain    |             |              | 
+ updated_at           | timestamp without time zone |           |          | now()                              | plain    |             |              | 
+ total_distance_today | numeric                     |           |          | 0                                  | main     |             |              | 
+ last_location_update | timestamp without time zone |           |          |                                    | plain    |             |              | 
+ location_geo         | geography(Point,4326)       |           |          |                                    | main     |             |              | 
+Indexes:
+    "riders_pkey" PRIMARY KEY, btree (id)
+    "idx_riders_geo" gist (location_geo)
+    "idx_riders_location" gist (location_geo)
+    "idx_riders_status" btree (status)
+    "riders_phone_number_key" UNIQUE CONSTRAINT, btree (phone_number)
+Referenced by:
+    TABLE "issues" CONSTRAINT "issues_rider_id_fkey" FOREIGN KEY (rider_id) REFERENCES riders(id)
+    TABLE "notifications" CONSTRAINT "notifications_rider_id_fkey" FOREIGN KEY (rider_id) REFERENCES riders(id)
+    TABLE "orders" CONSTRAINT "orders_assigned_rider_id_fkey" FOREIGN KEY (assigned_rider_id) REFERENCES riders(id)
+    TABLE "rider_assignments" CONSTRAINT "rider_assignments_rider_id_fkey" FOREIGN KEY (rider_id) REFERENCES riders(id)
+Triggers:
+    update_riders_updated_at BEFORE UPDATE ON riders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+Access method: heap
+
+==================== serviceable_areas ====================
+                                                                      Table "public.serviceable_areas"
+      Column      |            Type             | Collation | Nullable |                    Default                    | Storage  | Compression | Stats target | Description 
+------------------+-----------------------------+-----------+----------+-----------------------------------------------+----------+-------------+--------------+-------------
+ id               | integer                     |           | not null | nextval('serviceable_areas_id_seq'::regclass) | plain    |             |              | 
+ area_name        | character varying(255)      |           |          |                                               | extended |             |              | 
+ area_coordinates | jsonb                       |           |          |                                               | extended |             |              | 
+ created_at       | timestamp without time zone |           |          | now()                                         | plain    |             |              | 
+Indexes:
+    "serviceable_areas_pkey" PRIMARY KEY, btree (id)
+    "idx_serviceable_areas_name" btree (area_name)
+Access method: heap
+
+==================== spatial_ref_sys ====================
+                                               Table "public.spatial_ref_sys"
+  Column   |          Type           | Collation | Nullable | Default | Storage  | Compression | Stats target | Description 
+-----------+-------------------------+-----------+----------+---------+----------+-------------+--------------+-------------
+ srid      | integer                 |           | not null |         | plain    |             |              | 
+ auth_name | character varying(256)  |           |          |         | extended |             |              | 
+ auth_srid | integer                 |           |          |         | plain    |             |              | 
+ srtext    | character varying(2048) |           |          |         | extended |             |              | 
+ proj4text | character varying(2048) |           |          |         | extended |             |              | 
+Indexes:
+    "spatial_ref_sys_pkey" PRIMARY KEY, btree (srid)
+Check constraints:
+    "spatial_ref_sys_srid_check" CHECK (srid > 0 AND srid <= 998999)
+Access method: heap
+
+==================== system_settings ====================
+                                                                     Table "public.system_settings"
+    Column     |            Type             | Collation | Nullable |                   Default                   | Storage  | Compression | Stats target | Description 
+---------------+-----------------------------+-----------+----------+---------------------------------------------+----------+-------------+--------------+-------------
+ id            | integer                     |           | not null | nextval('system_settings_id_seq'::regclass) | plain    |             |              | 
+ setting_key   | character varying(50)       |           | not null |                                             | extended |             |              | 
+ setting_value | jsonb                       |           | not null |                                             | extended |             |              | 
+ updated_at    | timestamp without time zone |           |          | now()                                       | plain    |             |              | 
+Indexes:
+    "system_settings_pkey" PRIMARY KEY, btree (id)
+    "system_settings_setting_key_key" UNIQUE CONSTRAINT, btree (setting_key)
+Triggers:
+    update_system_settings_updated_at BEFORE UPDATE ON system_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+Access method: heap
+
+==================== users ====================
+                                                                    Table "public.users"
+    Column    |            Type             | Collation | Nullable |              Default              | Storage  | Compression | Stats target | Description 
+--------------+-----------------------------+-----------+----------+-----------------------------------+----------+-------------+--------------+-------------
+ id           | integer                     |           | not null | nextval('users_id_seq'::regclass) | plain    |             |              | 
+ name         | character varying(255)      |           | not null |                                   | extended |             |              | 
+ email        | character varying(255)      |           | not null |                                   | extended |             |              | 
+ phone_number | character varying(20)       |           | not null |                                   | extended |             |              | 
+ password     | character varying(255)      |           | not null |                                   | extended |             |              | 
+ created_at   | timestamp without time zone |           |          | now()                             | plain    |             |              | 
+ updated_at   | timestamp without time zone |           |          | now()                             | plain    |             |              | 
+Indexes:
+    "users_pkey" PRIMARY KEY, btree (id)
+    "users_email_key" UNIQUE CONSTRAINT, btree (email)
+    "users_phone_number_key" UNIQUE CONSTRAINT, btree (phone_number)
+Referenced by:
+    TABLE "issues" CONSTRAINT "issues_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+    TABLE "notifications" CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+    TABLE "orders" CONSTRAINT "orders_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+Triggers:
+    update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+Access method: heap
+
+==================== website_status ====================
+                                                                          Table "public.website_status"
+         Column          |            Type             | Collation | Nullable |                  Default                   | Storage  | Compression | Stats target | Description 
+-------------------------+-----------------------------+-----------+----------+--------------------------------------------+----------+-------------+--------------+-------------
+ id                      | integer                     |           | not null | nextval('website_status_id_seq'::regclass) | plain    |             |              | 
+ status                  | character varying(10)       |           |          | 'on'::character varying                    | extended |             |              | 
+ maintenance_notice      | text                        |           |          |                                            | extended |             |              | 
+ maintenance_notice_sent | boolean                     |           |          | false                                      | plain    |             |              | 
+ created_at              | timestamp without time zone |           |          | now()                                      | plain    |             |              | 
+Indexes:
+    "website_status_pkey" PRIMARY KEY, btree (id)
+Check constraints:
+    "website_status_status_check" CHECK (status::text = ANY (ARRAY['on'::character varying, 'off'::character varying]::text[]))
+Access method: heap
+
+====================  ====================
+                                                  List of relations
+ Schema |           Name           |   Type   |    Owner     | Persistence | Access method |    Size    | Description 
+--------+--------------------------+----------+--------------+-------------+---------------+------------+-------------
+ public | admins                   | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | admins_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | earnings                 | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | earnings_id_seq          | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | email_otps               | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | email_otps_id_seq        | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | food_item_images         | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | food_item_images_id_seq  | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | food_items               | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | food_items_id_seq        | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | geography_columns        | view     | cloud_admin  | permanent   |               | 0 bytes    | 
+ public | geometry_columns         | view     | cloud_admin  | permanent   |               | 0 bytes    | 
+ public | issues                   | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | issues_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | notifications            | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | notifications_id_seq     | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | order_items              | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | order_items_id_seq       | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | order_restaurants        | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | order_restaurants_id_seq | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | orders                   | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | orders_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | pickup_sequence          | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | pickup_sequence_id_seq   | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | restaurants              | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | restaurants_id_seq       | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | rider_assignments        | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | rider_assignments_id_seq | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | riders                   | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | riders_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | serviceable_areas        | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | serviceable_areas_id_seq | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | spatial_ref_sys          | table    | cloud_admin  | permanent   | heap          | 6936 kB    | 
+ public | system_settings          | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | system_settings_id_seq   | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | users                    | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | users_id_seq             | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | website_status           | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | website_status_id_seq    | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+(39 rows)
+
+====================  ====================
+                                                  List of relations
+ Schema |           Name           |   Type   |    Owner     | Persistence | Access method |    Size    | Description 
+--------+--------------------------+----------+--------------+-------------+---------------+------------+-------------
+ public | admins                   | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | admins_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | earnings                 | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | earnings_id_seq          | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | email_otps               | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | email_otps_id_seq        | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | food_item_images         | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | food_item_images_id_seq  | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | food_items               | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | food_items_id_seq        | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | geography_columns        | view     | cloud_admin  | permanent   |               | 0 bytes    | 
+ public | geometry_columns         | view     | cloud_admin  | permanent   |               | 0 bytes    | 
+ public | issues                   | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | issues_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | notifications            | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | notifications_id_seq     | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | order_items              | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | order_items_id_seq       | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | order_restaurants        | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | order_restaurants_id_seq | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | orders                   | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | orders_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | pickup_sequence          | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | pickup_sequence_id_seq   | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | restaurants              | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | restaurants_id_seq       | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | rider_assignments        | table    | neondb_owner | permanent   | heap          | 0 bytes    | 
+ public | rider_assignments_id_seq | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | riders                   | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | riders_id_seq            | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | serviceable_areas        | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | serviceable_areas_id_seq | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | spatial_ref_sys          | table    | cloud_admin  | permanent   | heap          | 6936 kB    | 
+ public | system_settings          | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | system_settings_id_seq   | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | users                    | table    | neondb_owner | permanent   | heap          | 16 kB      | 
+ public | users_id_seq             | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+ public | website_status           | table    | neondb_owner | permanent   | heap          | 8192 bytes | 
+ public | website_status_id_seq    | sequence | neondb_owner | permanent   |               | 8192 bytes | 
+(39 rows)
+
