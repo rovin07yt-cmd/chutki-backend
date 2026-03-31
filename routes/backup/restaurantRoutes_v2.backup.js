@@ -1,16 +1,85 @@
 console.log("🚀 USING restaurantRoutes_v2.js");
-const express = require("express");
+const db = require("../config/db");
+const express = require('express');
 const router = express.Router();
-const pool = require("../config/db");
-const multer = require("multer");
-const path = require("path");
-const { assignNearestRider } = require("../controllers/dispatchController");
+const pool = require('../config/db');
+const multer = require('multer');
+const path = require('path');
+const { assignNearestRider } = require('../controllers/dispatchController');
 
+// ================= FILE STORAGE =================
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
+  destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
 const upload = multer({ storage });
+
+// ================= OTP =================
+router.post('/auth/send-otp', async (req, res) => {
+  const { email } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  await pool.query(
+    `INSERT INTO email_otps(email, otp, expires_at)
+     VALUES ($1,$2,NOW() + INTERVAL '5 minutes')`,
+    [email, otp]
+  );
+
+  console.log("RESTAURANT OTP:", otp);
+  res.json({ success: true });
+});
+
+router.post('/auth/verify-otp', async (req, res) => {
+  const { email, otp } = req.body;
+
+  const result = await pool.query(
+    `SELECT * FROM email_otps
+     WHERE email=$1 AND otp=$2 AND expires_at > NOW()
+     ORDER BY created_at DESC LIMIT 1`,
+    [email, otp]
+  );
+
+  res.json({ success: result.rows.length > 0 });
+});
+
+// ================= AUTH =================
+router.post('/register', async (req, res) => {
+  try {
+    const { name, owner_name, phone, email, password, address } = req.body;
+
+    if (!name || !phone || !password || !address) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO restaurants (name, owner_name, phone_number, email, password, address)
+       VALUES ($1,$2,$3,$4,$5,$6)
+       RETURNING id`,
+      [name, owner_name, phone, email, password, address]
+    );
+
+    res.json({ success: true, restaurant_id: result.rows[0].id });
+
+  } catch (err) {
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+});
+
+router.post('/login', async (req, res) => {
+  const { identifier, password } = req.body;
+
+  const result = await pool.query(
+    `SELECT * FROM restaurants 
+     WHERE (email=$1 OR phone_number=$1) AND password=$2`,
+    [identifier, password]
+  );
+
+  if (result.rows.length === 0) return res.json({ success: false });
+
+  res.json({ success: true, restaurant: result.rows[0] });
+});
 
 // ================= ADD ITEM =================
 router.post('/add-item-with-images', upload.array('images', 5), async (req, res) => {
@@ -140,12 +209,12 @@ console.log("DELETE HIT:", req.body);
 
 // TOGGLE ITEM AVAILABILITY
 router.post('/toggle-item-availability', async (req, res) => {
-  const { item_id, available } = req.body;
+  const { item_id, is_available } = req.body;
 
   try {
     await pool.query(
-      "UPDATE food_items SET available=$1 WHERE id=$2",
-      [available, item_id]
+      "UPDATE food_items SET is_available=$1 WHERE id=$2",
+      [is_available, item_id]
     );
 
     res.json({ success: true });
@@ -169,7 +238,7 @@ router.post('/toggle-restaurant-status', async (req, res) => {
 
     // AUTO UPDATE ALL ITEMS
     await pool.query(
-      "UPDATE food_items SET available=$1 WHERE restaurant_id=$2",
+      "UPDATE food_items SET is_available=$1 WHERE restaurant_id=$2",
       [is_open, restaurant_id]
     );
 

@@ -1,7 +1,86 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const pool = require("../config/db");
+const pool = require('../config/db');
 
+
+// ================= AUTH =================
+
+// SEND OTP
+router.post('/auth/send-otp', async (req, res) => {
+  const { email } = req.body;
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  await pool.query(
+    `INSERT INTO email_otps(email, otp, expires_at)
+     VALUES ($1,$2, NOW() + INTERVAL '5 minutes')`,
+    [email, otp]
+  );
+
+  console.log("OTP:", otp); // dev only
+
+  res.json({ success: true });
+});
+
+
+// VERIFY OTP
+router.post('/auth/verify-otp', async (req, res) => {
+  const { email, otp } = req.body;
+
+  const result = await pool.query(
+    `SELECT * FROM email_otps
+     WHERE email=$1 AND otp=$2 AND expires_at > NOW()
+     ORDER BY created_at DESC LIMIT 1`,
+    [email, otp]
+  );
+
+  if (result.rows.length === 0) {
+    return res.json({ error: "Invalid OTP" });
+  }
+
+  res.json({ success: true });
+});
+
+
+// REGISTER
+router.post('/auth/register', async (req, res) => {
+  const { name, email, phone, password, role } = req.body;
+
+  try {
+    const user = await pool.query(
+      `INSERT INTO users(name, email, phone_number, password, role)
+       VALUES ($1,$2,$3,$4,$5)
+       RETURNING id`,
+      [name, email, phone, password, role || 'user']
+    );
+
+    res.json({ success: true, user_id: user.rows[0].id });
+
+  } catch (err) {
+    res.json({ error: "User already exists" });
+  }
+});
+
+
+// LOGIN
+router.post('/auth/login', async (req, res) => {
+  const { identifier, password } = req.body;
+
+  const result = await pool.query(
+    `SELECT * FROM users
+     WHERE (email=$1 OR phone_number=$1) AND password=$2`,
+    [identifier, password]
+  );
+
+  if (result.rows.length === 0) {
+    return res.json({ error: "Invalid credentials" });
+  }
+
+  res.json({ success: true, user: result.rows[0] });
+});
+
+
+// ================= RESTAURANTS =================
 router.get('/restaurants', async (req, res) => {
   const result = await pool.query(
     `SELECT id, name FROM restaurants WHERE is_open=true`

@@ -1,66 +1,50 @@
 const pool = require('../config/db');
 
+// LOGIN (ALL ROLES)
 exports.login = async (req, res) => {
-  const { identifier, password, role } = req.body;
-
   try {
-    let result;
+    const { identifier, password } = req.body;
 
-    // 🔹 USER LOGIN
-    if (role === 'user') {
-      result = await pool.query(
-        `SELECT * FROM users 
-         WHERE (email=$1 OR phone_number=$1) AND password=$2`,
-        [identifier, password]
-      );
+    // USER
+    let result = await pool.query(
+      `SELECT id, name, email, phone_number, 'user' AS role
+       FROM users
+       WHERE (email=$1 OR phone_number=$1) AND password=$2`,
+      [identifier, password]
+    );
+
+    if (result.rows.length > 0) {
+      return res.json({ success: true, user: result.rows[0] });
     }
 
-    // 🔹 RESTAURANT LOGIN
-    else if (role === 'restaurant') {
-      result = await pool.query(
-        `SELECT * FROM restaurants 
-         WHERE (email=$1 OR phone_number=$1) AND password=$2`,
-        [identifier, password]
-      );
+    // RESTAURANT
+    result = await pool.query(
+      `SELECT id, name, email, phone_number, 'restaurant' AS role
+       FROM restaurants
+       WHERE (email=$1 OR phone_number=$1) AND password=$2`,
+      [identifier, password]
+    );
+
+    if (result.rows.length > 0) {
+      return res.json({ success: true, user: result.rows[0] });
     }
 
-    // 🔹 RIDER LOGIN
-    else if (role === 'rider') {
-      result = await pool.query(
-        `SELECT * FROM riders 
-         WHERE (phone_number=$1 OR email=$1) AND password=$2`,
-        [identifier, password]
-      );
+    // RIDER
+    result = await pool.query(
+      `SELECT id, name, email, phone_number, 'rider' AS role
+       FROM riders
+       WHERE (email=$1 OR phone_number=$1) AND password=$2`,
+      [identifier, password]
+    );
+
+    if (result.rows.length > 0) {
+      return res.json({ success: true, user: result.rows[0] });
     }
 
-    // 🔹 ADMIN LOGIN
-    else if (role === 'admin') {
-      result = await pool.query(
-        `SELECT * FROM admins 
-         WHERE (email=$1 OR phone_number=$1) AND password=$2`,
-        [identifier, password]
-      );
-    }
-
-    // ❌ INVALID ROLE
-    else {
-      return res.json({ success: false, message: "Invalid role" });
-    }
-
-    // ❌ NO USER FOUND
-    if (!result || result.rows.length === 0) {
-      return res.json({ success: false, message: "Invalid credentials" });
-    }
-
-    // ✅ SUCCESS
-    res.json({
-      success: true,
-      role: role,
-      data: result.rows[0]
-    });
+    return res.json({ success: false, message: "Invalid credentials" });
 
   } catch (err) {
-    console.log("LOGIN ERROR:", err);
+    console.error("LOGIN ERROR:", err);
     res.status(500).json({ success: false });
   }
 };

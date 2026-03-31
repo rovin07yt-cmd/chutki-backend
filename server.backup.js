@@ -24,13 +24,11 @@ const deliveryRoutes = require('./routes/deliveryRoutes');
 const riderLocationRoutes = require('./routes/riderLocationRoutes');
 const restaurantRoutes = require('./routes/restaurantRoutes_v2');
 const userRoutes = require('./routes/userRoutes');
-const authRoutes = require('./routes/authRoutes');
 
 app.use('/api/orders', orderRoutes);
 app.use('/api/order-status', statusRoutes);
 app.use('/api/riders', riderRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/rider/location', riderLocationRoutes);
