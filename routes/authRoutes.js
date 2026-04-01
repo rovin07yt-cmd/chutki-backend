@@ -91,10 +91,10 @@ router.post('/register', async (req, res) => {
     // RESTAURANT REGISTER
     else if (role === "restaurant") {
       result = await pool.query(
-        `INSERT INTO restaurants(name, owner_name, phone_number, email, password)
-         VALUES ($1,$2,$3,$4,$5)
+        `INSERT INTO restaurants(name, owner_name, phone_number, email, password, address)
+         VALUES ($1,$2,$3,$4,$5,$6)
          RETURNING id`,
-        [req.body.restaurant_name, req.body.owner_name, phone, email, password]
+        [req.body.restaurant_name, req.body.owner_name, phone, email, password, req.body.city || "Thakurdwara"]
       );
     }
 
